@@ -151,12 +151,33 @@ def eval_form(request, role):
     if role in ('tutor', 'invited') and not is_authenticated(request, role):
         return redirect('eval_password', role=role)
 
+    # Check if this browser already submitted for this role
+    session_key = f'submitted_{role}'
+    if request.session.get(session_key):
+        submitted_name = request.session.get(f'submitted_{role}_name', '')
+        return render(request, 'evaluations/eval_form.html', {
+            'role': role,
+            'role_label': {'student': 'Student', 'tutor': 'Tutor', 'invited': 'Invited Evaluator'}[role],
+            'already_submitted': True,
+            'submitted_name': submitted_name,
+        })
+
     groups = Group.objects.prefetch_related('presenters').all()
 
     if request.method == 'POST':
         evaluator_name = request.POST.get('evaluator_name', '').strip()
         if not evaluator_name:
             messages.error(request, "Please enter your name.")
+            return redirect('eval_form', role=role)
+
+        # DB-level check: if this name already submitted scores, block
+        existing_evaluator = Evaluator.objects.filter(
+            name__iexact=evaluator_name, evaluator_type=role
+        ).first()
+        if existing_evaluator and existing_evaluator.scores.exists():
+            request.session[session_key] = True
+            request.session[f'submitted_{role}_name'] = evaluator_name
+            messages.warning(request, f"An evaluation was already submitted under the name '{evaluator_name}'. Each person can only submit once.")
             return redirect('eval_form', role=role)
 
         evaluator, _ = Evaluator.objects.get_or_create(name=evaluator_name, evaluator_type=role)
@@ -190,13 +211,26 @@ def eval_form(request, role):
             except Exception as e:
                 errors.append(f"{group.name}: {e}")
 
+        if saved or skipped:
+            request.session[session_key] = True
+            request.session[f'submitted_{role}_name'] = evaluator_name
+
+        result_messages = []
         if saved:
-            messages.success(request, f"✅ {saved} score(s) saved. Thank you, {evaluator_name}!")
+            result_messages.append(f"{saved} score(s) saved. Thank you, {evaluator_name}!")
         if skipped:
-            messages.warning(request, f"⚠️ {skipped} group(s) already scored by you — skipped.")
+            result_messages.append(f"{skipped} group(s) already scored by you -- skipped.")
         if errors:
-            messages.error(request, "Issues: " + "; ".join(errors))
-        return redirect('eval_form', role=role)
+            result_messages.append("Issues: " + "; ".join(errors))
+
+        return render(request, 'evaluations/eval_form.html', {
+            'role': role,
+            'role_label': {'student': 'Student', 'tutor': 'Tutor', 'invited': 'Invited Evaluator'}[role],
+            'just_submitted': True,
+            'result_messages': result_messages,
+            'submitted_name': evaluator_name,
+            'had_errors': bool(errors and not saved),
+        })
 
     return render(request, 'evaluations/eval_form.html', {
         'groups': groups, 'role': role,

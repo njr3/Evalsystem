@@ -1,9 +1,47 @@
 {% extends "evaluations/base.html" %}
 {% block title %}{{ role_label }} Evaluation Form{% endblock %}
+{% block messages %}{% endblock %}
 {% block content %}
+{% if just_submitted %}
+<div style="max-width:540px; margin:4rem auto; text-align:center;">
+  <div style="background:white; border-radius:16px; padding:3rem 2rem; box-shadow:0 4px 24px rgba(0,0,0,.08); border:1px solid var(--gray-200);">
+    {% if had_errors %}
+    <div style="width:64px; height:64px; border-radius:50%; background:#fee2e2; margin:0 auto 1.5rem; display:flex; align-items:center; justify-content:center;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    </div>
+    <h2 style="font-size:1.4rem; font-weight:700; color:var(--gray-900); margin-bottom:1rem;">Submission Error</h2>
+    {% else %}
+    <div style="width:64px; height:64px; border-radius:50%; background:#dcfce7; margin:0 auto 1.5rem; display:flex; align-items:center; justify-content:center;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 style="font-size:1.4rem; font-weight:700; color:var(--gray-900); margin-bottom:1rem;">Evaluation Submitted</h2>
+    {% endif %}
+    {% for msg in result_messages %}
+    <p style="font-size:1rem; color:var(--gray-600); line-height:1.6; margin-bottom:.5rem;">{{ msg }}</p>
+    {% endfor %}
+    <div style="margin-top:2rem;">
+      <a href="/evaluate/" class="btn btn-secondary" style="padding:.7rem 1.8rem;">Back to Evaluation Home</a>
+    </div>
+  </div>
+</div>
+{% elif already_submitted %}
+<div style="max-width:540px; margin:4rem auto; text-align:center;">
+  <div style="background:white; border-radius:16px; padding:3rem 2rem; box-shadow:0 4px 24px rgba(0,0,0,.08); border:1px solid var(--gray-200);">
+    <div style="width:64px; height:64px; border-radius:50%; background:#fef3c7; margin:0 auto 1.5rem; display:flex; align-items:center; justify-content:center;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <h2 style="font-size:1.4rem; font-weight:700; color:var(--gray-900); margin-bottom:1rem;">Already Submitted</h2>
+    <p style="font-size:1rem; color:var(--gray-600); line-height:1.6;">You have already submitted your evaluation{% if submitted_name %} as <strong>{{ submitted_name }}</strong>{% endif %}. Each person can only submit once.</p>
+    <div style="margin-top:2rem;">
+      <a href="/evaluate/" class="btn btn-secondary" style="padding:.7rem 1.8rem;">Back to Evaluation Home</a>
+    </div>
+  </div>
+</div>
+{% else %}
 {% if role == 'student' %}{% with accent="var(--student)" accent_hex="#3b82f6" bg_light="#eff6ff" %}{% include "evaluations/_eval_form_inner.html" %}{% endwith %}
 {% elif role == 'tutor' %}{% with accent="var(--tutor)" accent_hex="#10b981" bg_light="#f0fdf4" %}{% include "evaluations/_eval_form_inner.html" %}{% endwith %}
 {% else %}{% with accent="var(--invited)" accent_hex="#8b5cf6" bg_light="#f5f3ff" %}{% include "evaluations/_eval_form_inner.html" %}{% endwith %}
+{% endif %}
 {% endif %}
 <style>
 .score-input { display:flex; gap:.4rem; align-items:center; flex-wrap:wrap; }

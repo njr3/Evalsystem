@@ -27,7 +27,7 @@
       {% with presenters=group.presenters.all %}
       {% if presenters %}
       <div style="margin-top:.5rem; font-size:.88rem;">
-        <span style="color:var(--gray-600);">👤 Presenter{% if presenters|length > 1 %}s{% endif %}:</span>
+        <span style="color:var(--gray-600);">Presenter{% if presenters|length > 1 %}s{% endif %}:</span>
         {% for p in presenters %}<strong style="color:var(--gray-800);">{{ p.name }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %}
       </div>
       {% endif %}
@@ -62,7 +62,7 @@
 
 <div style="position:sticky; bottom:0; background:white; border-top:2px solid var(--gray-200); padding:1rem; margin-top:1rem; display:flex; justify-content:space-between; align-items:center; box-shadow:0 -4px 12px rgba(0,0,0,.08); border-radius:0 0 10px 10px;">
   <div style="font-size:.9rem; color:var(--gray-600);">Review all scores before submitting.</div>
-  <button type="submit" class="btn btn-primary" style="background:{{ accent }}; padding:.75rem 2rem; font-size:1rem;">✅ Submit All Scores</button>
+  <button type="submit" class="btn btn-primary" style="background:{{ accent }}; padding:.75rem 2rem; font-size:1rem;">Submit All Scores</button>
 </div>
 </form>
 </div>

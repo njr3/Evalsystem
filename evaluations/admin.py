@@ -1,6 +1,23 @@
 from django.contrib import admin
+from django import forms
 from django.utils.html import format_html
 from .models import Group, Presenter, Evaluator, Score, WeightConfig
+
+
+SCORE_WIDGET = forms.NumberInput(attrs={'min': 0, 'max': 4, 'step': 0.5})
+
+
+class ScoreAdminForm(forms.ModelForm):
+    class Meta:
+        model = Score
+        fields = '__all__'
+        widgets = {
+            'content': SCORE_WIDGET,
+            'presentation_skills': SCORE_WIDGET,
+            'time_management': SCORE_WIDGET,
+            'language': SCORE_WIDGET,
+            'questions_answers': SCORE_WIDGET,
+        }
 
 
 class PresenterInline(admin.TabularInline):
@@ -65,6 +82,7 @@ class EvaluatorAdmin(admin.ModelAdmin):
 
 @admin.register(Score)
 class ScoreAdmin(admin.ModelAdmin):
+    form = ScoreAdminForm
     list_display = ['group', 'evaluator', 'evaluator_type_badge', 'content',
                     'presentation_skills', 'time_management', 'language',
                     'questions_answers', 'total_display']
