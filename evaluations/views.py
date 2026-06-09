@@ -170,6 +170,16 @@ def eval_form(request, role):
             messages.error(request, "Please enter your name.")
             return redirect('eval_form', role=role)
 
+        # DB-level check: if this name already submitted scores, block
+        existing_evaluator = Evaluator.objects.filter(
+            name__iexact=evaluator_name, evaluator_type=role
+        ).first()
+        if existing_evaluator and existing_evaluator.scores.exists():
+            request.session[session_key] = True
+            request.session[f'submitted_{role}_name'] = evaluator_name
+            messages.warning(request, f"An evaluation was already submitted under the name '{evaluator_name}'. Each person can only submit once.")
+            return redirect('eval_form', role=role)
+
         evaluator, _ = Evaluator.objects.get_or_create(name=evaluator_name, evaluator_type=role)
         saved, skipped, errors = 0, 0, []
 
@@ -201,11 +211,11 @@ def eval_form(request, role):
             except Exception as e:
                 errors.append(f"{group.name}: {e}")
 
-        if saved:
-            messages.success(request, f"{saved} score(s) saved. Thank you, {evaluator_name}!")
-            # Mark session as submitted
+        if saved or skipped:
             request.session[session_key] = True
             request.session[f'submitted_{role}_name'] = evaluator_name
+        if saved:
+            messages.success(request, f"{saved} score(s) saved. Thank you, {evaluator_name}!")
         if skipped:
             messages.warning(request, f"{skipped} group(s) already scored by you -- skipped.")
         if errors:
