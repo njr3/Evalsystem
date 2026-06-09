@@ -1,0 +1,32 @@
+{% extends "evaluations/base.html" %}
+{% block title %}Submit Score  EvalSystem{% endblock %}
+{% block content %}
+<div style="max-width: 640px; margin: 0 auto;">
+  <a href="/" style="color:var(--gray-600); text-decoration:none; font-size:0.9rem;">← Dashboard</a>
+  <div class="page-title" style="margin-top:0.5rem;">Submit Evaluation Score</div>
+  <p class="page-sub">Fill in scores for each criterion (0–4).</p>
+
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+      <div style="margin-bottom:1.2rem;">
+        <label style="display:block; font-weight:500; margin-bottom:4px; font-size:0.9rem;">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div style="font-size:0.78rem; color:var(--gray-600); margin-top:3px;">{{ field.help_text }}</div>{% endif %}
+        {% for error in field.errors %}<div style="font-size:0.8rem; color:var(--danger); margin-top:3px;">{{ error }}</div>{% endfor %}
+      </div>
+      {% endfor %}
+      <!--
+      <div style="background:var(--gray-50); border-radius:8px; padding:1rem; margin-bottom:1.2rem; font-size:0.85rem; color:var(--gray-600);">
+        <strong>Scoring Guide:</strong>
+        0 = Not demonstrated · 1 = Poor · 2 = Satisfactory · 3 = Good · 4 = Excellent
+      </div>
+      -->
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:0.75rem;">
+        Submit Score
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

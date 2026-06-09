@@ -1,0 +1,103 @@
+{% extends "evaluations/base.html" %}
+{% block title %}{{ group.name }}  EvalSystem{% endblock %}
+{% block content %}
+<div style="margin-bottom:.5rem;"><a href="/" style="color:var(--gray-600); text-decoration:none; font-size:.9rem;">← Dashboard</a></div>
+<div class="page-title">{{ group.name }}</div>
+<p class="page-sub">{{ group.description|default:"Detailed score breakdown and evaluator impact." }}</p>
+
+<!-- Final Score Banner -->
+<div class="card" style="margin-bottom:1.5rem; border-left:4px solid {% if weighted_score >= 14 %}var(--success){% elif weighted_score %}var(--warning){% else %}var(--gray-200){% endif %};">
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <div style="font-size:.85rem; color:var(--gray-600); margin-bottom:4px;">Weighted Final Score</div>
+      <div style="font-size:2.5rem; font-weight:800; color:{% if weighted_score >= 14 %}var(--success){% elif weighted_score %}var(--warning){% else %}var(--gray-600){% endif %}">
+        {% if weighted_score %}{{ weighted_score }}/20{% else %}Pending{% endif %}
+      </div>
+    </div>
+    {% if config %}
+    <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+      {% if breakdown.student %}<div style="text-align:center;"><div style="font-size:1.4rem; font-weight:700; color:var(--student)">{{ breakdown.student.total }}/20</div><div class="badge badge-student">Students ({{ config.student_weight }}%)</div></div>{% endif %}
+      {% if breakdown.tutor %}<div style="text-align:center;"><div style="font-size:1.4rem; font-weight:700; color:var(--tutor)">{{ breakdown.tutor.total }}/20</div><div class="badge badge-tutor">Tutors ({{ config.tutor_weight }}%)</div></div>{% endif %}
+      {% if breakdown.invited %}<div style="text-align:center;"><div style="font-size:1.4rem; font-weight:700; color:var(--invited)">{{ breakdown.invited.total }}/20</div><div class="badge badge-invited">Invited ({{ config.invited_weight }}%)</div></div>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-bottom:1.5rem;">
+  <!-- Criteria Breakdown -->
+  <div class="card">
+    <div class="card-title">Score Breakdown by Criteria</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Criterion</th>
+          {% if breakdown.student %}<th style="color:var(--student)">Students</th>{% endif %}
+          {% if breakdown.tutor %}<th style="color:var(--tutor)">Tutors</th>{% endif %}
+          {% if breakdown.invited %}<th style="color:var(--invited)">Invited</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Content</td>{% if breakdown.student %}<td>{{ breakdown.student.content }}/4</td>{% endif %}{% if breakdown.tutor %}<td>{{ breakdown.tutor.content }}/4</td>{% endif %}{% if breakdown.invited %}<td>{{ breakdown.invited.content }}/4</td>{% endif %}</tr>
+        <tr><td>Presentation</td>{% if breakdown.student %}<td>{{ breakdown.student.presentation_skills }}/4</td>{% endif %}{% if breakdown.tutor %}<td>{{ breakdown.tutor.presentation_skills }}/4</td>{% endif %}{% if breakdown.invited %}<td>{{ breakdown.invited.presentation_skills }}/4</td>{% endif %}</tr>
+        <tr><td>Time Mgmt</td>{% if breakdown.student %}<td>{{ breakdown.student.time_management }}/4</td>{% endif %}{% if breakdown.tutor %}<td>{{ breakdown.tutor.time_management }}/4</td>{% endif %}{% if breakdown.invited %}<td>{{ breakdown.invited.time_management }}/4</td>{% endif %}</tr>
+        <tr><td>Language</td>{% if breakdown.student %}<td>{{ breakdown.student.language }}/4</td>{% endif %}{% if breakdown.tutor %}<td>{{ breakdown.tutor.language }}/4</td>{% endif %}{% if breakdown.invited %}<td>{{ breakdown.invited.language }}/4</td>{% endif %}</tr>
+        <tr><td>Q&A</td>{% if breakdown.student %}<td>{{ breakdown.student.questions_answers }}/4</td>{% endif %}{% if breakdown.tutor %}<td>{{ breakdown.tutor.questions_answers }}/4</td>{% endif %}{% if breakdown.invited %}<td>{{ breakdown.invited.questions_answers }}/4</td>{% endif %}</tr>
+        <tr style="border-top:2px solid var(--gray-200); font-weight:700;">
+          <td>Total Avg</td>
+          {% if breakdown.student %}<td style="color:var(--student)">{{ breakdown.student.total }}/20</td>{% endif %}
+          {% if breakdown.tutor %}<td style="color:var(--tutor)">{{ breakdown.tutor.total }}/20</td>{% endif %}
+          {% if breakdown.invited %}<td style="color:var(--invited)">{{ breakdown.invited.total }}/20</td>{% endif %}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Type Impact -->
+  {% if type_impact %}
+  <div class="card">
+    <div class="card-title">Evaluator Type Impact on Final Score</div>
+    <p style="font-size:.85rem; color:var(--gray-600); margin-bottom:1rem;">How much each evaluator type contributed to the final weighted score of <strong>{{ weighted_score }}/20</strong>.</p>
+    {% for label, data in type_impact.items %}
+    <div style="margin-bottom:1rem;">
+      <div style="display:flex; justify-content:space-between; font-size:.9rem; margin-bottom:3px;">
+        <span><strong>{{ label }}</strong> <small style="color:var(--gray-600)">(avg {{ data.avg }}/20 × {{ data.weight }}%)</small></span>
+        <strong>{{ data.pct_of_final }}%</strong>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:{{ data.pct_of_final }}%; background:{% if label == 'Students' %}var(--student){% elif label == 'Tutors' %}var(--tutor){% else %}var(--invited){% endif %};"></div>
+      </div>
+      <div style="font-size:.78rem; color:var(--gray-600); margin-top:2px;">Contributes {{ data.contribution }}/20 points to final score</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Individual Scores -->
+<div class="card">
+  <div class="card-title">Individual Scores ({{ scores|length }} total)</div>
+  <table>
+    <thead>
+      <tr><th>Evaluator</th><th>Type</th><th>Content</th><th>Presentation</th><th>Time</th><th>Language</th><th>Q&A</th><th>Total</th><th>%</th></tr>
+    </thead>
+    <tbody>
+      {% for score in scores %}
+      <tr>
+        <td>{{ score.evaluator.name }}</td>
+        <td><span class="badge badge-{{ score.evaluator.evaluator_type }}">{{ score.evaluator.get_evaluator_type_display }}</span></td>
+        <td>{{ score.content }}/4</td>
+        <td>{{ score.presentation_skills }}/4</td>
+        <td>{{ score.time_management }}/4</td>
+        <td>{{ score.language }}/4</td>
+        <td>{% if score.questions_answers is not None %}{{ score.questions_answers }}/4{% else %}<span style="color:var(--gray-600)">—</span>{% endif %}</td>
+        <td><span class="score-chip {% if score.total >= 14 %}score-high{% elif score.total >= 10 %}score-mid{% else %}score-low{% endif %}">{{ score.total }}/20</span></td>
+        <td>{{ score.percentage }}%</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9" style="text-align:center; color:var(--gray-600); padding:2rem;">No scores yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

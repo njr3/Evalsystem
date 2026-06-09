@@ -1,0 +1,47 @@
+{% extends "evaluations/base.html" %}
+{% block title %}Evaluate - Choose Your Role{% endblock %}
+{% block content %}
+<div style="max-width:700px; margin:0 auto; text-align:center;">
+  <div class="page-title">Presentation Evaluation</div>
+  <p class="page-sub">Select your role to access the evaluation form.</p>
+  <div class="grid grid-3" style="margin-top:1rem;">
+    <a href="/evaluate/student/" style="text-decoration:none;">
+      <div class="card" style="cursor:pointer; transition:all .2s; border:2px solid transparent;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='transparent'">
+        <div style="font-size:3rem; margin-bottom:.8rem;">🎓</div>
+        <div style="font-weight:700; font-size:1.1rem; color:var(--student); margin-bottom:.4rem;">Student</div>
+        <div style="font-size:.85rem; color:var(--gray-600);">Student evaluation(no password required).</div>
+        <div style="margin-top:1rem;"><span class="btn btn-primary" style="background:var(--student); width:100%; justify-content:center;">Enter </span></div>
+      </div>
+    </a>
+    <a href="/evaluate/tutor/" style="text-decoration:none;">
+      <div class="card" style="cursor:pointer; transition:all .2s; border:2px solid transparent;" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='transparent'">
+        <div style="font-size:3rem; margin-bottom:.8rem;">👨‍🏫</div>
+        <div style="font-weight:700; font-size:1.1rem; color:var(--tutor); margin-bottom:.4rem;">Tutor</div>
+        <div style="font-size:.85rem; color:var(--gray-600);">Tutor evaluation(password protected).</div>
+        <div style="margin-top:1rem;"><span class="btn btn-primary" style="background:var(--tutor); width:100%; justify-content:center;"> Enter </span></div>
+      </div>
+    </a>
+    <a href="/evaluate/invited/" style="text-decoration:none;">
+      <div class="card" style="cursor:pointer; transition:all .2s; border:2px solid transparent;" onmouseover="this.style.borderColor='#8b5cf6'" onmouseout="this.style.borderColor='transparent'">
+        <div style="font-size:3rem; margin-bottom:.8rem;">🏅</div>
+        <div style="font-weight:700; font-size:1.1rem; color:var(--invited); margin-bottom:.4rem;">Invited Evaluator</div>
+        <div style="font-size:.85rem; color:var(--gray-600);">External jury(password protected).</div>
+        <div style="margin-top:1rem;"><span class="btn btn-primary" style="background:var(--invited); width:100%; justify-content:center;"> Enter </span></div>
+      </div>
+    </a>
+  </div>
+  <!--
+  <div class="card" style="margin-top:2rem; text-align:left;">
+    <div class="card-title">Scoring Guide</div>
+    <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:.5rem; text-align:center;">
+      <div style="padding:.5rem; background:#fee2e2; border-radius:6px;"><strong>0</strong><br><small>Not demonstrated</small></div>
+      <div style="padding:.5rem; background:#fef9c3; border-radius:6px;"><strong>1</strong><br><small>Poor</small></div>
+      <div style="padding:.5rem; background:#fefce8; border-radius:6px;"><strong>2</strong><br><small>Satisfactory</small></div>
+      <div style="padding:.5rem; background:#dcfce7; border-radius:6px;"><strong>3</strong><br><small>Good</small></div>
+      <div style="padding:.5rem; background:#bbf7d0; border-radius:6px;"><strong>4</strong><br><small>Excellent</small></div>
+    </div>
+  </div>
+  -->
+  <div style="margin-top:1.5rem;"><a href="/login/" style="font-size:.85rem; color:var(--gray-600);">Tutor/Admin dashboard access </a></div>
+</div>
+{% endblock %}

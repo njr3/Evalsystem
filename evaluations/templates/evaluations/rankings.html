@@ -1,0 +1,71 @@
+{% extends "evaluations/base.html" %}
+{% block title %}Rankings EvalSystem{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+  <div>
+    <div class="page-title">Final Group Rankings</div>
+    <p style="color:var(--gray-600); font-size:.9rem;">Weighted final scores with evaluator type percentage impact.</p>
+  </div>
+  <div style="display:flex; gap:.8rem;">
+    <a href="/" class="btn btn-secondary">Dashboard</a>
+    <a href="/export/excel/" class="btn btn-success"> Download Excel</a>
+  </div>
+</div>
+
+{% if config %}
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-title">Active Weight Configuration - {{ config.name }}</div>
+  <div style="display:flex; gap:2.5rem; flex-wrap:wrap;">
+    <div>
+      <div style="font-size:.8rem; color:var(--gray-600); margin-bottom:4px;">Students</div>
+      <div class="progress-bar" style="width:180px;"><div class="progress-fill" style="width:{{ config.student_pct }}%; background:var(--student);"></div></div>
+      <div style="font-size:.9rem; font-weight:600; color:var(--student); margin-top:3px;">{{ config.student_weight }}% <small style="color:var(--gray-600); font-weight:400;">({{ config.student_pct }}% of total)</small></div>
+    </div>
+    <div>
+      <div style="font-size:.8rem; color:var(--gray-600); margin-bottom:4px;">Tutors</div>
+      <div class="progress-bar" style="width:180px;"><div class="progress-fill" style="width:{{ config.tutor_pct }}%; background:var(--tutor);"></div></div>
+      <div style="font-size:.9rem; font-weight:600; color:var(--tutor); margin-top:3px;">{{ config.tutor_weight }}% <small style="color:var(--gray-600); font-weight:400;">({{ config.tutor_pct }}% of total)</small></div>
+    </div>
+    <div>
+      <div style="font-size:.8rem; color:var(--gray-600); margin-bottom:4px;">Invited Evaluators</div>
+      <div class="progress-bar" style="width:180px;"><div class="progress-fill" style="width:{{ config.invited_pct }}%; background:var(--invited);"></div></div>
+      <div style="font-size:.9rem; font-weight:600; color:var(--invited); margin-top:3px;">{{ config.invited_weight }}% <small style="color:var(--gray-600); font-weight:400;">({{ config.invited_pct }}% of total)</small></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Group</th><th>Presenters</th>
+        <th style="color:var(--student)">Students Avg</th>
+        <th style="color:var(--tutor)">Tutors Avg</th>
+        <th style="color:var(--invited)">Invited Avg</th>
+        <th>Weighted Final</th><th>%</th><th>Grade</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in ranked %}
+      <tr {% if r.rank == 1 %}style="background:#fffbeb;"{% endif %}>
+        <td><span class="rank-badge {% if r.rank == 1 %}rank-1{% elif r.rank == 2 %}rank-2{% elif r.rank == 3 %}rank-3{% else %}rank-other{% endif %}">
+          {% if r.rank == 1 %}🥇{% elif r.rank == 2 %}🥈{% elif r.rank == 3 %}🥉{% else %}{{ r.rank }}{% endif %}
+        </span></td>
+        <td><strong>{{ r.group.name }}</strong></td>
+        <td style="font-size:.85rem; color:var(--gray-600);">{{ r.presenters|default:"—" }}</td>
+        <td>{% if r.student_avg %}<span class="score-chip {% if r.student_avg >= 14 %}score-high{% elif r.student_avg >= 10 %}score-mid{% else %}score-low{% endif %}">{{ r.student_avg }}</span> <small style="color:var(--gray-600)">({{ r.breakdown.student.count }})</small>{% else %}—{% endif %}</td>
+        <td>{% if r.tutor_avg %}<span class="score-chip {% if r.tutor_avg >= 14 %}score-high{% elif r.tutor_avg >= 10 %}score-mid{% else %}score-low{% endif %}">{{ r.tutor_avg }}</span> <small style="color:var(--gray-600)">({{ r.breakdown.tutor.count }})</small>{% else %}—{% endif %}</td>
+        <td>{% if r.invited_avg %}<span class="score-chip {% if r.invited_avg >= 14 %}score-high{% elif r.invited_avg >= 10 %}score-mid{% else %}score-low{% endif %}">{{ r.invited_avg }}</span> <small style="color:var(--gray-600)">({{ r.breakdown.invited.count }})</small>{% else %}—{% endif %}</td>
+        <td>{% if r.weighted_score %}<strong style="font-size:1.15rem; color:{% if r.weighted_score >= 14 %}var(--success){% elif r.weighted_score >= 10 %}var(--warning){% else %}var(--danger){% endif %}">{{ r.weighted_score }}/20</strong>{% else %}<span style="color:var(--gray-600)">Pending</span>{% endif %}</td>
+        <td>{% if r.weighted_score %}{% widthratio r.weighted_score 20 100 as pct %}<div style="display:flex;align-items:center;gap:.5rem;"><div class="progress-bar" style="width:70px;"><div class="progress-fill" style="width:{{ pct }}%;background:var(--primary);"></div></div><span style="font-size:.85rem;font-weight:600;">{{ pct }}%</span></div>{% else %}—{% endif %}</td>
+        <td>{% if r.weighted_score %}{% widthratio r.weighted_score 20 100 as gp %}<span class="score-chip {% if gp >= 70 %}score-high{% elif gp >= 50 %}score-mid{% else %}score-low{% endif %}">{% if gp >= 90 %}A+{% elif gp >= 80 %}A{% elif gp >= 70 %}B{% elif gp >= 60 %}C{% elif gp >= 50 %}D{% else %}F{% endif %}</span>{% else %}—{% endif %}</td>
+        <td><a href="/group/{{ r.group.pk }}/" class="btn btn-secondary" style="font-size:.8rem;">Details</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="10" style="text-align:center;color:var(--gray-600);padding:2rem;">No rankings yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

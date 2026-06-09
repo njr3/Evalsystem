@@ -1,0 +1,93 @@
+{% extends "evaluations/base.html" %}
+{% block title %}Dashboard EvalSystem{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+  <div>
+    <div class="page-title">Presentation Evaluation Dashboard</div>
+    <p style="color:var(--gray-600); font-size:.9rem;">Overview of all groups, scores, and rankings</p>
+  </div>
+  <div style="display:flex; gap:.8rem; flex-wrap:wrap; align-items:center;">
+    <a href="/evaluate/" class="btn btn-primary"> Evaluation Forms</a>
+    <a href="/rankings/" class="btn btn-secondary"> Rankings</a>
+    <a href="/export/excel/" class="btn btn-success"> Export Excel</a>
+    {% if request.user.is_staff %}
+    <a href="/admin-clear/" class="btn" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca;">🗑 Clear Data</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if config %}
+<div class="card" style="margin-bottom:1.5rem; border-left:4px solid var(--primary);">
+  <div style="display:flex; align-items:center; gap:2rem; flex-wrap:wrap;">
+    <div><strong>Active Config:</strong> {{ config.name }}</div>
+    <div style="display:flex; gap:1.5rem;">
+      <div><span class="badge badge-student">Students</span> <strong>{{ config.student_weight }}%</strong></div>
+      <div><span class="badge badge-tutor">Tutors</span> <strong>{{ config.tutor_weight }}%</strong></div>
+      <div><span class="badge badge-invited">Invited</span> <strong>{{ config.invited_weight }}%</strong></div>
+    </div>
+    <a href="/admin/evaluations/weightconfig/" class="btn btn-secondary" style="margin-left:auto; font-size:.8rem;">Edit Weights</a>
+  </div>
+</div>
+{% else %}
+<div class="card" style="margin-bottom:1.5rem; border-left:4px solid var(--warning); background:#fffbeb;">
+  ⚠️ No active weight configuration. <a href="/admin/evaluations/weightconfig/add/">Create one in Admin</a>.
+</div>
+{% endif %}
+
+<div class="grid grid-4" style="margin-bottom:1.5rem;">
+  <div class="stat-card"><div class="stat-val" style="color:var(--primary)">{{ rankings|length }}</div><div class="stat-label">Groups</div></div>
+  <div class="stat-card"><div class="stat-val" style="color:var(--student)">{{ evaluator_counts.student }}</div><div class="stat-label">Students</div></div>
+  <div class="stat-card"><div class="stat-val" style="color:var(--tutor)">{{ evaluator_counts.tutor }}</div><div class="stat-label">Tutors</div></div>
+  <div class="stat-card"><div class="stat-val" style="color:var(--invited)">{{ evaluator_counts.invited }}</div><div class="stat-label">Invited Evaluators</div></div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+    <div class="card-title" style="margin:0;">Group Rankings</div>
+    <a href="/rankings/" class="btn btn-primary" style="font-size:.85rem;">Full Rankings</a>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Group</th><th>Presenters</th>
+        <th style="color:var(--student)">Students</th>
+        <th style="color:var(--tutor)">Tutors</th>
+        <th style="color:var(--invited)">Invited</th>
+        <th>Weighted Final</th><th>Scores</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rankings %}
+      <tr>
+        <td><span class="rank-badge {% if r.rank == 1 %}rank-1{% elif r.rank == 2 %}rank-2{% elif r.rank == 3 %}rank-3{% else %}rank-other{% endif %}">{{ r.rank }}</span></td>
+        <td><strong>{{ r.group.name }}</strong></td>
+        <td style="font-size:.85rem; color:var(--gray-600);">{{ r.presenters }}</td>
+        <td>{% if r.breakdown.student %}<span class="score-chip {% if r.breakdown.student.total >= 14 %}score-high{% elif r.breakdown.student.total >= 10 %}score-mid{% else %}score-low{% endif %}">{{ r.breakdown.student.total }}/20</span> <small style="color:var(--gray-600)">({{ r.breakdown.student.count }})</small>{% endif %}</td>
+        <td>{% if r.breakdown.tutor %}<span class="score-chip {% if r.breakdown.tutor.total >= 14 %}score-high{% elif r.breakdown.tutor.total >= 10 %}score-mid{% else %}score-low{% endif %}">{{ r.breakdown.tutor.total }}/20</span> <small style="color:var(--gray-600)">({{ r.breakdown.tutor.count }})</small>{% endif %}</td>
+        <td>{% if r.breakdown.invited %}<span class="score-chip {% if r.breakdown.invited.total >= 14 %}score-high{% elif r.breakdown.invited.total >= 10 %}score-mid{% else %}score-low{% endif %}">{{ r.breakdown.invited.total }}/20</span> <small style="color:var(--gray-600)">({{ r.breakdown.invited.count }})</small>{% endif %}</td>
+        <td>{% if r.weighted_score %}<strong style="font-size:1.1rem; color:{% if r.weighted_score >= 14 %}var(--success){% elif r.weighted_score >= 10 %}var(--warning){% else %}var(--danger){% endif %}">{{ r.weighted_score }}/20</strong>{% else %}<span style="color:var(--gray-600)">Pending</span>{% endif %}</td>
+        <td>{{ r.score_count }}</td>
+        <td><a href="/group/{{ r.group.pk }}/" class="btn btn-secondary" style="font-size:.8rem;">Details</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9" style="text-align:center; color:var(--gray-600); padding:2rem;">No groups yet. <a href="/admin/evaluations/group/add/">Add groups in Admin</a></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if criteria_impact %}
+<div class="card">
+  <div class="card-title">Average Criteria Impact</div>
+  <p style="font-size:.85rem; color:var(--gray-600); margin-bottom:1rem;">Percentage each criterion contributes to the overall average total score.</p>
+  {% for criterion, pct in criteria_impact.items %}
+  <div style="margin-bottom:.8rem;">
+    <div style="display:flex; justify-content:space-between; font-size:.9rem; margin-bottom:3px;">
+      <span>{{ criterion }}</span><strong>{{ pct }}%</strong>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:{{ pct }}%; background:var(--primary);"></div></div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

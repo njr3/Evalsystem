@@ -1,0 +1,106 @@
+<div style="--accent-hex:{{ accent_hex }};">
+<div style="border-top:4px solid {{ accent }}; background:{{ bg_light }}; border-radius:10px; padding:1.5rem; margin-bottom:2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+  <div>
+    <div style="font-size:1.5rem; font-weight:800; color:{{ accent }};">{{ role_label }} Evaluation Form</div>
+    <div style="font-size:.9rem; color:var(--gray-600); margin-top:.2rem;">Score each group on 5 criteria taking values from 0 to 4. Decimal values like 2.5 are allowed.</div>
+  </div>
+  <a href="/evaluate/" class="btn btn-secondary">Change Role</a>
+</div>
+
+<form method="post">
+{% csrf_token %}
+
+<div class="card" style="margin-bottom:2rem; border-left:4px solid {{ accent }};">
+  <div class="card-title">Your Information</div>
+  <label style="display:block; font-weight:500; margin-bottom:6px; font-size:.9rem;">Your Full Name <span style="color:var(--danger)">*</span></label>
+  <input type="text" name="evaluator_name" required autofocus placeholder="Enter your full name..."
+         style="width:100%; max-width:400px; padding:.7rem 1rem; border:2px solid var(--gray-200); border-radius:8px; font-size:1rem; outline:none;"
+         onfocus="this.style.borderColor='{{ accent_hex }}'" onblur="this.style.borderColor='var(--gray-200)'">
+</div>
+
+{% for group in groups %}
+<div class="group-card">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.2rem; padding-bottom:.8rem; border-bottom:1px solid var(--gray-100);">
+    <div>
+      <span style="font-size:1.1rem; font-weight:700; color:{{ accent }};">{{ group.name }}</span>
+      {% if group.description %}<span style="font-size:.85rem; color:var(--gray-600); margin-left:.8rem;">{{ group.description }}</span>{% endif %}
+      {% with presenters=group.presenters.all %}
+      {% if presenters %}
+      <div style="margin-top:.5rem; font-size:.88rem;">
+        <span style="color:var(--gray-600);">👤 Presenter{% if presenters|length > 1 %}s{% endif %}:</span>
+        {% for p in presenters %}<strong style="color:var(--gray-800);">{{ p.name }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+    </div>
+    <div id="total_{{ group.pk }}" style="font-size:1rem; font-weight:700; color:{{ accent }}; background:{{ bg_light }}; padding:.3rem .9rem; border-radius:6px; white-space:nowrap; min-width:90px; text-align:center;">
+      0 / 20
+    </div>
+  </div>
+
+  {% for field_name, label in criteria %}
+  <div class="criteria-row">
+    <div class="criteria-label">
+      {{ label }} <span style="font-size:.75rem; color:var(--gray-600);">(/4)</span>
+      {% if field_name == 'questions_answers' %}<br><small style="color:var(--warning); font-size:.72rem;"> Fill after Q&A session</small>{% endif %}
+    </div>
+    <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;">
+      <input type="number"
+             name="group_{{ group.pk }}_{{ field_name }}"
+             id="inp_{{ group.pk }}_{{ field_name }}"
+             min="0" max="4" step="0.5"
+             placeholder="0 - 4"
+             oninput="updateTotal({{ group.pk }})"
+             style="width:90px; padding:.55rem .75rem; border:2px solid var(--gray-200); border-radius:8px; font-size:1rem; font-weight:600; outline:none; text-align:center;"
+             onfocus="this.style.borderColor='{{ accent_hex }}'" onblur="this.style.borderColor='var(--gray-200)'">
+      <span id="hint_{{ group.pk }}_{{ field_name }}" style="font-size:.82rem; color:var(--gray-600); min-width:120px;"></span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+
+<div style="position:sticky; bottom:0; background:white; border-top:2px solid var(--gray-200); padding:1rem; margin-top:1rem; display:flex; justify-content:space-between; align-items:center; box-shadow:0 -4px 12px rgba(0,0,0,.08); border-radius:0 0 10px 10px;">
+  <div style="font-size:.9rem; color:var(--gray-600);">Review all scores before submitting.</div>
+  <button type="submit" class="btn btn-primary" style="background:{{ accent }}; padding:.75rem 2rem; font-size:1rem;">✅ Submit All Scores</button>
+</div>
+</form>
+</div>
+
+<script>
+const HINTS = {0:'Not demonstrated', 0.5:'Very poor', 1:'Poor', 1.5:'Below average', 2:'Satisfactory', 2.5:'Above average', 3:'Good', 3.5:'Very good', 4:'Excellent'};
+const FIELDS = ['content','presentation_skills','time_management','language','questions_answers'];
+
+function normalizeVal(raw) {
+  // Accept both comma and dot as decimal separator
+  const s = String(raw).replace(',', '.');
+  const v = parseFloat(s);
+  return isNaN(v) ? 0 : Math.min(4, Math.max(0, v));
+}
+
+function updateTotal(pk) {
+  let total = 0;
+  FIELDS.forEach(f => {
+    const inp = document.getElementById(`inp_${pk}_${f}`);
+    if (!inp) return;
+    const v = normalizeVal(inp.value);
+    total += v;
+    const hint = document.getElementById(`hint_${pk}_${f}`);
+    if (hint) hint.textContent = inp.value !== '' ? (HINTS[v] || '') : '';
+  });
+  const el = document.getElementById(`total_${pk}`);
+  if (el) {
+    el.textContent = `${total.toFixed(1)} / 20`;
+    el.style.color = total >= 14 ? '#16a34a' : total >= 10 ? '#ca8a04' : '#dc2626';
+  }
+}
+
+// Normalize comma→dot on blur for each input
+document.querySelectorAll('input[type=number]').forEach(inp => {
+  inp.addEventListener('blur', function() {
+    if (this.value.includes(',')) {
+      this.value = this.value.replace(',', '.');
+    }
+  });
+});
+</script>

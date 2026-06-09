@@ -1,0 +1,20 @@
+{% extends "evaluations/base.html" %}
+{% block title %}{{ role_label }} Evaluation Form{% endblock %}
+{% block content %}
+{% if role == 'student' %}{% with accent="var(--student)" accent_hex="#3b82f6" bg_light="#eff6ff" %}{% include "evaluations/_eval_form_inner.html" %}{% endwith %}
+{% elif role == 'tutor' %}{% with accent="var(--tutor)" accent_hex="#10b981" bg_light="#f0fdf4" %}{% include "evaluations/_eval_form_inner.html" %}{% endwith %}
+{% else %}{% with accent="var(--invited)" accent_hex="#8b5cf6" bg_light="#f5f3ff" %}{% include "evaluations/_eval_form_inner.html" %}{% endwith %}
+{% endif %}
+<style>
+.score-input { display:flex; gap:.4rem; align-items:center; flex-wrap:wrap; }
+.score-input input[type=radio] { display:none; }
+.score-btn { display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:8px; border:2px solid var(--gray-200); font-weight:700; font-size:.95rem; cursor:pointer; transition:all .15s; background:white; }
+.score-input input[type=radio]:checked + .score-btn { border-color:var(--accent-hex); background:var(--accent-hex); color:white; }
+.score-btn:hover { border-color:var(--accent-hex); color:var(--accent-hex); }
+.group-card { border:1px solid var(--gray-200); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem; background:white; transition:border .2s; }
+.group-card:hover { border-color:var(--accent-hex); }
+.criteria-row { display:grid; grid-template-columns:200px 1fr; align-items:center; gap:1rem; margin-bottom:.9rem; }
+.criteria-label { font-size:.9rem; font-weight:500; }
+@media(max-width:600px){.criteria-row{grid-template-columns:1fr;}}
+</style>
+{% endblock %}

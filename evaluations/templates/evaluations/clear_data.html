@@ -1,0 +1,37 @@
+{% extends "evaluations/base.html" %}
+{% block title %}Clear All Data{% endblock %}
+{% block content %}
+<div style="max-width:500px; margin:3rem auto;">
+  <div class="card" style="border-top:4px solid var(--danger);">
+    <div style="text-align:center; margin-bottom:1.5rem;">
+      <div style="font-size:3rem;">⚠️</div>
+      <h2 style="font-size:1.3rem; margin-top:.5rem; color:var(--danger);">Clear All Submitted Data</h2>
+      <p style="font-size:.9rem; color:var(--gray-600); margin-top:.5rem;">
+        This will permanently delete <strong>all scores</strong> and <strong>all evaluator records</strong> submitted through the forms.<br>
+        Groups and presenter names will <strong>not</strong> be affected.
+      </p>
+    </div>
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" style="margin-bottom:1rem;">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div style="margin-bottom:1.2rem;">
+        <label style="display:block; font-weight:600; margin-bottom:6px; font-size:.9rem; color:var(--danger);">
+          Type <code style="background:#fee2e2; padding:2px 6px; border-radius:4px;">DELETE</code> to confirm
+        </label>
+        <input type="text" name="confirm" placeholder="Type DELETE here..."
+               style="width:100%; padding:.7rem 1rem; border:2px solid var(--danger); border-radius:8px; font-size:1rem; outline:none; font-weight:600; letter-spacing:.05em;">
+      </div>
+      <button type="submit" class="btn" style="width:100%; justify-content:center; padding:.75rem; background:var(--danger); color:white; font-size:1rem;">
+        🗑 Delete All Scores &amp; Evaluators
+      </button>
+    </form>
+    <div style="text-align:center; margin-top:1rem;">
+      <a href="/" style="font-size:.85rem; color:var(--gray-600); text-decoration:none;">Cancel, go back</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
